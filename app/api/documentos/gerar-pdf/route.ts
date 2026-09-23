@@ -37,7 +37,15 @@ export async function POST(req: NextRequest) {
 
   const buffer = await renderToBuffer(elemento as any)
 
-  const nomeArquivo = `${doc.tipo.toLowerCase().replace(/\s+/g, '-')}-${doc.numero.replace('/', '-')}.pdf`
+  function sanitizarNomeArquivo(texto: string) {
+    return texto
+      .normalize('NFD').replace(/[\u0300-\u036f]/g, '') // remove acentos
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-') // troca tudo que não é letra/número por hífen
+      .replace(/^-+|-+$/g, '') // remove hífen do começo/fim
+  }
+
+  const nomeArquivo = `${sanitizarNomeArquivo(doc.tipo)}-${sanitizarNomeArquivo(doc.numero)}.pdf`
 
   const { error: erroUpload } = await admin.storage
     .from('documentos')
