@@ -31,6 +31,8 @@ create table eleitores (
   lng double precision,
   interesse text,
   tags text[] default '{}',
+  data_nascimento date,
+  cpf text,
   criado_por uuid references perfis(id),
   criado_em timestamptz default now()
 );
@@ -44,6 +46,8 @@ create table atendimentos (
   canal text default 'WhatsApp',
   status text not null default 'Aberto' check (status in ('Aberto', 'Em andamento', 'Concluído')),
   data date default current_date,
+  data_nascimento date,
+  cpf text,
   criado_por uuid references perfis(id),
   criado_em timestamptz default now()
 );
@@ -93,6 +97,7 @@ create table eventos_agenda (
   titulo text not null,
   data date not null,
   hora time,
+  hora_fim time,
   local text,
   participantes text[] default '{}',
   criado_por uuid references perfis(id),
@@ -142,6 +147,30 @@ create table visitas_checkin (
   sincronizado boolean default true
 );
 
+-- ---------- LOGÍSTICA DO GABINETE ----------
+create table materiais_logistica (
+  id uuid primary key default uuid_generate_v4(),
+  nome text not null,
+  categoria text,
+  estoque_atual int default 0,
+  criado_por uuid references perfis(id),
+  criado_em timestamptz default now()
+);
+
+create table entregas_logistica (
+  id uuid primary key default uuid_generate_v4(),
+  material_id uuid references materiais_logistica(id),
+  material_nome text not null,
+  quantidade int not null,
+  bairro text not null,
+  responsavel text,
+  data date default current_date,
+  status text not null default 'Planejada' check (status in ('Planejada', 'Em rota', 'Entregue')),
+  observacao text,
+  criado_por uuid references perfis(id),
+  criado_em timestamptz default now()
+);
+
 -- ============================================================
 -- ROW LEVEL SECURITY — protege os dados por usuário autenticado
 -- ============================================================
@@ -157,6 +186,8 @@ alter table segmentos enable row level security;
 alter table campanhas_comunicacao enable row level security;
 alter table rotas enable row level security;
 alter table visitas_checkin enable row level security;
+alter table materiais_logistica enable row level security;
+alter table entregas_logistica enable row level security;
 
 -- Regra padrão: qualquer usuário autenticado do gabinete pode ler e escrever.
 -- (Ajuste depois para regras por papel, ex: assessor só vê a própria rota)
@@ -189,6 +220,11 @@ create policy "Usuários autenticados podem tudo em rotas"
 
 create policy "Usuários autenticados podem tudo em checkins"
   on visitas_checkin for all using (auth.role() = 'authenticated');
+
+create policy "Usuários autenticados podem tudo em materiais_logistica"
+  on materiais_logistica for all using (auth.role() = 'authenticated');
+create policy "Usuários autenticados podem tudo em entregas_logistica"
+  on entregas_logistica for all using (auth.role() = 'authenticated');
 
 create policy "Usuário vê e edita o próprio perfil"
   on perfis for select using (auth.uid() = id);

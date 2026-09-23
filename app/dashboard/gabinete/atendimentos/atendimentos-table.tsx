@@ -11,6 +11,8 @@ type Atendimento = {
   canal: string
   status: string
   data: string
+  data_nascimento: string | null
+  cpf: string | null
 }
 
 const STATUS_CLASSES: Record<string, string> = {
@@ -19,23 +21,63 @@ const STATUS_CLASSES: Record<string, string> = {
   'Concluído': 'bg-[#E1EEE4] text-[#2C6B41]',
 }
 
+function calcularIdade(dataNascimento: string | null): number | null {
+  if (!dataNascimento) return null
+  const nasc = new Date(dataNascimento)
+  const hoje = new Date()
+  let idade = hoje.getFullYear() - nasc.getFullYear()
+  const aindaNaoFezAniversario = hoje.getMonth() < nasc.getMonth() || (hoje.getMonth() === nasc.getMonth() && hoje.getDate() < nasc.getDate())
+  if (aindaNaoFezAniversario) idade--
+  return idade
+}
+
+const FORM_VAZIO = { cidadao: '', assunto: '', bairro: '', canal: 'WhatsApp', status: 'Aberto', dataNascimento: '', cpf: '' }
+
 export default function AtendimentosTable({ dadosIniciais }: { dadosIniciais: Atendimento[] }) {
   const supabase = createClient()
   const [itens, setItens] = useState<Atendimento[]>(dadosIniciais)
   const [modalAberto, setModalAberto] = useState(false)
-  const [form, setForm] = useState({ cidadao: '', assunto: '', bairro: '', canal: 'WhatsApp', status: 'Aberto' })
+  const [editandoId, setEditandoId] = useState<string | null>(null)
+  const [form, setForm] = useState(FORM_VAZIO)
   const [salvando, setSalvando] = useState(false)
+
+  function abrirNovo() {
+    setEditandoId(null)
+    setForm(FORM_VAZIO)
+    setModalAberto(true)
+  }
+
+  function abrirEdicao(a: Atendimento) {
+    setEditandoId(a.id)
+    setForm({
+      cidadao: a.cidadao, assunto: a.assunto, bairro: a.bairro, canal: a.canal, status: a.status,
+      dataNascimento: a.data_nascimento ?? '', cpf: a.cpf ?? '',
+    })
+    setModalAberto(true)
+  }
+
+  function fecharModal() {
+    setModalAberto(false)
+    setEditandoId(null)
+    setForm(FORM_VAZIO)
+  }
 
   async function salvar() {
     if (!form.cidadao.trim() || !form.assunto.trim() || !form.bairro.trim()) return
     setSalvando(true)
-    const { data, error } = await supabase.from('atendimentos').insert(form).select().single()
-    setSalvando(false)
-    if (!error && data) {
-      setItens((prev) => [data as Atendimento, ...prev])
-      setForm({ cidadao: '', assunto: '', bairro: '', canal: 'WhatsApp', status: 'Aberto' })
-      setModalAberto(false)
+    const payload = {
+      cidadao: form.cidadao, assunto: form.assunto, bairro: form.bairro, canal: form.canal, status: form.status,
+      data_nascimento: form.dataNascimento || null, cpf: form.cpf || null,
     }
+    if (editandoId) {
+      const { data, error } = await supabase.from('atendimentos').update(payload).eq('id', editandoId).select().single()
+      if (!error && data) setItens((prev) => prev.map((i) => (i.id === editandoId ? (data as Atendimento) : i)))
+    } else {
+      const { data, error } = await supabase.from('atendimentos').insert(payload).select().single()
+      if (!error && data) setItens((prev) => [data as Atendimento, ...prev])
+    }
+    setSalvando(false)
+    fecharModal()
   }
 
   async function atualizarStatus(id: string, status: string) {
@@ -53,14 +95,14 @@ export default function AtendimentosTable({ dadosIniciais }: { dadosIniciais: At
     <div className="bg-white border border-line">
       <div className="flex justify-between items-center p-4 border-b border-line">
         <h3 className="font-semibold text-sm">Atendimentos</h3>
-        <button onClick={() => setModalAberto(true)} className="bg-blue-500 hover:bg-blue-600 text-white text-sm font-semibold px-4 py-2 border border-blue-400">
+        <button onClick={abrirNovo} className="bg-blue-500 hover:bg-blue-600 text-white text-sm font-semibold px-4 py-2 border border-blue-400">
           + Novo atendimento
         </button>
       </div>
       <table className="w-full text-sm">
         <thead>
           <tr className="text-left font-mono text-[10px] uppercase tracking-wide text-slate-500 border-b border-line">
-            <th className="p-3">Cidadão</th><th className="p-3">Assunto</th><th className="p-3">Bairro</th><th className="p-3">Status</th><th className="p-3"></th>
+            <th className="p-3">Cidadão</th><th className="p-3">Assunto</th><th className="p-3">Bairro</th><th className="p-3">Idade</th><th className="p-3">Status</th><th className="p-3"></th>
           </tr>
         </thead>
         <tbody>
@@ -69,16 +111,14 @@ export default function AtendimentosTable({ dadosIniciais }: { dadosIniciais: At
               <td className="p-3 font-semibold">{i.cidadao}</td>
               <td className="p-3">{i.assunto}</td>
               <td className="p-3">{i.bairro}</td>
+              <td className="p-3">{calcularIdade(i.data_nascimento) ?? '—'}</td>
               <td className="p-3">
-                <select
-                  value={i.status}
-                  onChange={(e) => atualizarStatus(i.id, e.target.value)}
-                  className={`text-xs font-semibold border-none px-2 py-1 ${STATUS_CLASSES[i.status]}`}
-                >
+                <select value={i.status} onChange={(e) => atualizarStatus(i.id, e.target.value)} className={`text-xs font-semibold border-none px-2 py-1 ${STATUS_CLASSES[i.status]}`}>
                   <option>Aberto</option><option>Em andamento</option><option>Concluído</option>
                 </select>
               </td>
-              <td className="p-3">
+              <td className="p-3 whitespace-nowrap">
+                <button onClick={() => abrirEdicao(i)} className="border border-line px-2.5 py-1 text-xs font-semibold text-blue-600 mr-1.5">Editar</button>
                 <button onClick={() => excluir(i.id)} className="border border-line px-2.5 py-1 text-xs font-semibold text-red-700">Excluir</button>
               </td>
             </tr>
@@ -88,8 +128,8 @@ export default function AtendimentosTable({ dadosIniciais }: { dadosIniciais: At
 
       {modalAberto && (
         <div className="fixed inset-0 bg-navy-950/55 flex items-center justify-center z-50 p-5">
-          <div className="bg-white w-full max-w-md border border-line p-6">
-            <h3 className="font-bold text-lg mb-4">Novo atendimento</h3>
+          <div className="bg-white w-full max-w-md border border-line p-6 max-h-[90vh] overflow-y-auto">
+            <h3 className="font-bold text-lg mb-4">{editandoId ? 'Editar atendimento' : 'Novo atendimento'}</h3>
             <div className="space-y-3">
               <input placeholder="Cidadão *" value={form.cidadao} onChange={(e) => setForm({ ...form, cidadao: e.target.value })} className="w-full border border-line px-3 py-2 text-sm" />
               <input placeholder="Assunto *" value={form.assunto} onChange={(e) => setForm({ ...form, assunto: e.target.value })} className="w-full border border-line px-3 py-2 text-sm" />
@@ -97,9 +137,19 @@ export default function AtendimentosTable({ dadosIniciais }: { dadosIniciais: At
               <select value={form.canal} onChange={(e) => setForm({ ...form, canal: e.target.value })} className="w-full border border-line px-3 py-2 text-sm">
                 <option>WhatsApp</option><option>Telefone</option><option>E-mail</option><option>Presencial</option>
               </select>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block font-mono text-[9.5px] uppercase tracking-wide text-slate-500 mb-1">Data de nascimento</label>
+                  <input type="date" value={form.dataNascimento} onChange={(e) => setForm({ ...form, dataNascimento: e.target.value })} className="w-full border border-line px-3 py-2 text-sm" />
+                </div>
+                <div>
+                  <label className="block font-mono text-[9.5px] uppercase tracking-wide text-slate-500 mb-1">CPF</label>
+                  <input placeholder="000.000.000-00" value={form.cpf} onChange={(e) => setForm({ ...form, cpf: e.target.value })} className="w-full border border-line px-3 py-2 text-sm" />
+                </div>
+              </div>
             </div>
             <div className="flex justify-end gap-2 mt-5">
-              <button onClick={() => setModalAberto(false)} className="border border-line px-4 py-2 text-sm font-semibold text-slate-500">Cancelar</button>
+              <button onClick={fecharModal} className="border border-line px-4 py-2 text-sm font-semibold text-slate-500">Cancelar</button>
               <button onClick={salvar} disabled={salvando} className="bg-blue-500 hover:bg-blue-600 text-white px-5 py-2 text-sm font-semibold border border-blue-400 disabled:opacity-60">
                 {salvando ? 'Salvando...' : 'Salvar'}
               </button>

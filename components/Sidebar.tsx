@@ -13,6 +13,7 @@ const NAV = [
     { href: '/dashboard/gabinete/atendimentos', label: 'Atendimento ao cidadão', icon: '☎' },
     { href: '/dashboard/gabinete/documentos', label: 'Documentos & ofícios', icon: '▦' },
     { href: '/dashboard/gabinete/proposicoes', label: 'Proposições', icon: '§' },
+    { href: '/dashboard/logistica', label: 'Logística', icon: '▧' },
   ]},
   { group: 'Gestão', items: [
     { href: '/dashboard/gestao/financeiro', label: 'Financeiro', icon: '$' },

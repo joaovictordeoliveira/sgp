@@ -3,20 +3,21 @@
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 
-type Evento = { id: string; titulo: string; data: string; hora: string | null; local: string | null }
+type Evento = { id: string; titulo: string; data: string; hora: string | null; hora_fim: string | null; local: string | null }
 
 export default function AgendaList({ dadosIniciais }: { dadosIniciais: Evento[] }) {
   const supabase = createClient()
   const [itens, setItens] = useState<Evento[]>(dadosIniciais)
   const [modalAberto, setModalAberto] = useState(false)
-  const [form, setForm] = useState({ titulo: '', data: '', hora: '', local: '' })
+  const [form, setForm] = useState({ titulo: '', data: '', hora: '', horaFim: '', local: '' })
 
   async function salvar() {
     if (!form.titulo.trim() || !form.data) return
-    const { data, error } = await supabase.from('eventos_agenda').insert(form).select().single()
+    const payload = { titulo: form.titulo, data: form.data, hora: form.hora || null, hora_fim: form.horaFim || null, local: form.local }
+    const { data, error } = await supabase.from('eventos_agenda').insert(payload).select().single()
     if (!error && data) {
       setItens((prev) => [...prev, data as Evento].sort((a, b) => a.data.localeCompare(b.data)))
-      setForm({ titulo: '', data: '', hora: '', local: '' })
+      setForm({ titulo: '', data: '', hora: '', horaFim: '', local: '' })
       setModalAberto(false)
     }
   }
@@ -38,7 +39,9 @@ export default function AgendaList({ dadosIniciais }: { dadosIniciais: Evento[] 
         {itens.map((ev) => (
           <div key={ev.id} className="flex justify-between items-center py-2.5 border-b border-paper-dim last:border-0">
             <div className="flex gap-3">
-              <div className="font-mono text-xs text-blue-600 w-24 shrink-0">{ev.data.split('-').reverse().join('/')} {ev.hora?.slice(0, 5)}</div>
+              <div className="font-mono text-xs text-blue-600 w-32 shrink-0">
+                {ev.data.split('-').reverse().join('/')} {ev.hora?.slice(0, 5)}{ev.hora_fim ? ` – ${ev.hora_fim.slice(0, 5)}` : ''}
+              </div>
               <div><div className="text-sm font-semibold">{ev.titulo}</div><div className="text-xs text-slate-500">{ev.local}</div></div>
             </div>
             <button onClick={() => excluir(ev.id)} className="border border-line px-2.5 py-1 text-xs font-semibold text-red-700">Excluir</button>
@@ -53,7 +56,16 @@ export default function AgendaList({ dadosIniciais }: { dadosIniciais: Evento[] 
             <div className="space-y-3">
               <input placeholder="Título *" value={form.titulo} onChange={(e) => setForm({ ...form, titulo: e.target.value })} className="w-full border border-line px-3 py-2 text-sm" />
               <input type="date" value={form.data} onChange={(e) => setForm({ ...form, data: e.target.value })} className="w-full border border-line px-3 py-2 text-sm" />
-              <input type="time" value={form.hora} onChange={(e) => setForm({ ...form, hora: e.target.value })} className="w-full border border-line px-3 py-2 text-sm" />
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block font-mono text-[9.5px] uppercase tracking-wide text-slate-500 mb-1">Início</label>
+                  <input type="time" value={form.hora} onChange={(e) => setForm({ ...form, hora: e.target.value })} className="w-full border border-line px-3 py-2 text-sm" />
+                </div>
+                <div>
+                  <label className="block font-mono text-[9.5px] uppercase tracking-wide text-slate-500 mb-1">Término</label>
+                  <input type="time" value={form.horaFim} onChange={(e) => setForm({ ...form, horaFim: e.target.value })} className="w-full border border-line px-3 py-2 text-sm" />
+                </div>
+              </div>
               <input placeholder="Local" value={form.local} onChange={(e) => setForm({ ...form, local: e.target.value })} className="w-full border border-line px-3 py-2 text-sm" />
             </div>
             <div className="flex justify-end gap-2 mt-5">
