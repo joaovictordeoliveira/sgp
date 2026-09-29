@@ -39,6 +39,14 @@ const config: Config = {
         body: ['Inter', 'sans-serif'],
         mono: ['"IBM Plex Mono"', 'monospace'],
       },
+      boxShadow: {
+        card: '0 1px 2px rgba(15,24,38,0.04), 0 1px 1px rgba(15,24,38,0.03)',
+        'card-hover': '0 4px 14px rgba(15,24,38,0.08), 0 1px 3px rgba(15,24,38,0.05)',
+        modal: '0 24px 64px rgba(10,18,32,0.28)',
+      },
+      transitionProperty: {
+        base: 'color, background-color, border-color, box-shadow, transform',
+      },
     },
   },
   plugins: [],

@@ -17,26 +17,26 @@ export default async function DashboardHome() {
         <h1 className="text-2xl font-bold">Resumo do mandato</h1>
       </div>
 
-      <div className="grid grid-cols-4 gap-px bg-line border border-line mb-6">
-        <div className="bg-white p-5">
+      <div className="grid grid-cols-4 gap-4 mb-6">
+        <div className="bg-white p-5 rounded-xl border border-line/60 shadow-card">
           <div className="font-mono text-[10px] uppercase tracking-wide text-slate-500 mb-2">Eleitores mapeados</div>
           <div className="font-display text-2xl font-extrabold">{eleitores.count ?? 0}</div>
         </div>
-        <div className="bg-white p-5">
+        <div className="bg-white p-5 rounded-xl border border-line/60 shadow-card">
           <div className="font-mono text-[10px] uppercase tracking-wide text-slate-500 mb-2">Atendimentos abertos</div>
           <div className="font-display text-2xl font-extrabold">{atendimentosAbertos.count ?? 0}</div>
         </div>
-        <div className="bg-white p-5">
+        <div className="bg-white p-5 rounded-xl border border-line/60 shadow-card">
           <div className="font-mono text-[10px] uppercase tracking-wide text-slate-500 mb-2">Documentos em tramitação</div>
           <div className="font-display text-2xl font-extrabold">{documentosTramitacao.count ?? 0}</div>
         </div>
-        <div className="bg-white p-5">
+        <div className="bg-white p-5 rounded-xl border border-line/60 shadow-card">
           <div className="font-mono text-[10px] uppercase tracking-wide text-slate-500 mb-2">Eventos hoje</div>
           <div className="font-display text-2xl font-extrabold">{eventosHoje.data?.length ?? 0}</div>
         </div>
       </div>
 
-      <div className="bg-white border border-line">
+      <div className="bg-white border border-line/60 rounded-xl shadow-card overflow-hidden">
         <div className="p-4 border-b border-line font-semibold text-sm">Agenda de hoje</div>
         <div className="p-4">
           {eventosHoje.data && eventosHoje.data.length > 0 ? (

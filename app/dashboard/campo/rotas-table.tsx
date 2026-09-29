@@ -37,10 +37,10 @@ export default function RotasTable({ dadosIniciais, assessores }: { dadosIniciai
   }
 
   return (
-    <div className="bg-white border border-line">
+    <div className="bg-white border border-line/60 rounded-xl shadow-card overflow-hidden">
       <div className="flex justify-between items-center p-4 border-b border-line">
         <h3 className="font-semibold text-sm">Rotas planejadas</h3>
-        <button onClick={() => setModalAberto(true)} className="bg-blue-500 hover:bg-blue-600 text-white text-sm font-semibold px-4 py-2 border border-blue-400">+ Nova rota</button>
+        <button onClick={() => setModalAberto(true)} className="bg-blue-500 hover:bg-blue-600 text-white rounded-lg shadow-sm hover:shadow-card-hover transition-base text-sm font-semibold px-4 py-2">+ Nova rota</button>
       </div>
       <div className="p-4 space-y-3">
         {itens.length === 0 && <div className="text-sm text-slate-500 text-center py-6">Nenhuma rota cadastrada ainda.</div>}
@@ -55,7 +55,7 @@ export default function RotasTable({ dadosIniciais, assessores }: { dadosIniciai
                 <select value={r.status} onChange={(e) => atualizarStatus(r.id, e.target.value)} className="text-xs border border-line px-2 py-1">
                   <option>Planejada</option><option>Em andamento</option><option>Concluída</option>
                 </select>
-                <button onClick={() => excluir(r.id)} className="border border-line px-2.5 py-1 text-xs font-semibold text-red-700">Excluir</button>
+                <button onClick={() => excluir(r.id)} className="border border-line/70 px-2.5 py-1 text-xs font-semibold text-red-700 rounded-md hover:bg-red-50 hover:border-red-200 transition-base">Excluir</button>
               </div>
             </div>
             <ol className="text-xs text-slate-500 list-decimal list-inside space-y-0.5">
@@ -66,19 +66,19 @@ export default function RotasTable({ dadosIniciais, assessores }: { dadosIniciai
       </div>
 
       {modalAberto && (
-        <div className="fixed inset-0 bg-navy-950/55 flex items-center justify-center z-50 p-5">
+        <div className="fixed inset-0 bg-navy-950/60 backdrop-blur-sm flex items-center justify-center z-50 p-5">
           <div className="bg-white w-full max-w-md border border-line p-6">
             <h3 className="font-bold text-lg mb-4">Nova rota</h3>
             <div className="space-y-3">
-              <select value={assessorId} onChange={(e) => setAssessorId(e.target.value)} className="w-full border border-line px-3 py-2 text-sm">
+              <select value={assessorId} onChange={(e) => setAssessorId(e.target.value)} className="w-full border border-line/70 px-3.5 py-2.5 text-sm rounded-lg outline-none transition-base focus:border-blue-400 focus:ring-2 focus:ring-blue-400/15">
                 <option value="">Selecione o assessor *</option>
                 {assessores.map((a) => <option key={a.id} value={a.id}>{a.nome}</option>)}
               </select>
-              <textarea placeholder="Um endereço por linha" value={paradasTexto} onChange={(e) => setParadasTexto(e.target.value)} rows={5} className="w-full border border-line px-3 py-2 text-sm" />
+              <textarea placeholder="Um endereço por linha" value={paradasTexto} onChange={(e) => setParadasTexto(e.target.value)} rows={5} className="w-full border border-line/70 px-3.5 py-2.5 text-sm rounded-lg outline-none transition-base focus:border-blue-400 focus:ring-2 focus:ring-blue-400/15" />
             </div>
             <div className="flex justify-end gap-2 mt-5">
-              <button onClick={() => setModalAberto(false)} className="border border-line px-4 py-2 text-sm font-semibold text-slate-500">Cancelar</button>
-              <button onClick={salvar} className="bg-blue-500 hover:bg-blue-600 text-white px-5 py-2 text-sm font-semibold border border-blue-400">Salvar rota</button>
+              <button onClick={() => setModalAberto(false)} className="border border-line/70 px-4 py-2 text-sm font-semibold text-slate-500 rounded-lg hover:bg-paper-dim transition-base">Cancelar</button>
+              <button onClick={salvar} className="bg-blue-500 hover:bg-blue-600 text-white rounded-lg shadow-sm hover:shadow-card-hover transition-base px-5 py-2 text-sm font-semibold">Salvar rota</button>
             </div>
           </div>
         </div>

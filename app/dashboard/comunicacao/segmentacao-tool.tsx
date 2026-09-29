@@ -63,7 +63,7 @@ export default function SegmentacaoTool({ bairros, totalEleitores, segmentosInic
 
   return (
     <div className="space-y-5">
-      <div className="bg-white border border-line p-5">
+      <div className="bg-white border border-line/60 rounded-xl shadow-card p-5">
         <h3 className="font-semibold text-sm mb-3">Disparar campanha</h3>
         <div className="flex gap-4 mb-3 text-sm">
           {['whatsapp', 'sms', 'email'].map((c) => (
@@ -73,12 +73,12 @@ export default function SegmentacaoTool({ bairros, totalEleitores, segmentosInic
             </label>
           ))}
         </div>
-        <input placeholder="Nome da campanha *" value={nomeCampanha} onChange={(e) => setNomeCampanha(e.target.value)} className="w-full border border-line px-3 py-2 text-sm mb-2.5" />
-        <textarea placeholder="Mensagem *" value={mensagem} onChange={(e) => setMensagem(e.target.value)} rows={4} className="w-full border border-line px-3 py-2 text-sm mb-2.5" />
+        <input placeholder="Nome da campanha *" value={nomeCampanha} onChange={(e) => setNomeCampanha(e.target.value)} className="w-full border border-line/70 px-3.5 py-2.5 text-sm rounded-lg outline-none transition-base focus:border-blue-400 focus:ring-2 focus:ring-blue-400/15 mb-2.5" />
+        <textarea placeholder="Mensagem *" value={mensagem} onChange={(e) => setMensagem(e.target.value)} rows={4} className="w-full border border-line/70 px-3.5 py-2.5 text-sm rounded-lg outline-none transition-base focus:border-blue-400 focus:ring-2 focus:ring-blue-400/15 mb-2.5" />
         <p className="text-xs text-slate-500 mb-3">
           Será enviado para {bairro ? `eleitores de "${bairro}"` : 'todos os eleitores cadastrados'} que tenham telefone/e-mail salvo.
         </p>
-        <button onClick={dispararCampanha} disabled={enviando} className="bg-blue-500 hover:bg-blue-600 text-white text-sm font-semibold px-4 py-2 border border-blue-400 disabled:opacity-60">
+        <button onClick={dispararCampanha} disabled={enviando} className="bg-blue-500 hover:bg-blue-600 text-white rounded-lg shadow-sm hover:shadow-card-hover transition-base text-sm font-semibold px-4 py-2 disabled:opacity-60">
           {enviando ? 'Enviando...' : 'Disparar agora'}
         </button>
 
@@ -98,10 +98,10 @@ export default function SegmentacaoTool({ bairros, totalEleitores, segmentosInic
         )}
       </div>
 
-      <div className="bg-white border border-line p-5">
+      <div className="bg-white border border-line/60 rounded-xl shadow-card p-5">
         <h3 className="font-semibold text-sm mb-3">Construtor de segmento</h3>
         <div className="flex gap-2.5 flex-wrap items-end mb-4">
-          <select value={bairro} onChange={(e) => { setBairro(e.target.value); setContagem(null) }} className="border border-line px-3 py-2 text-sm">
+          <select value={bairro} onChange={(e) => { setBairro(e.target.value); setContagem(null) }} className="border border-line/70 px-3.5 py-2.5 text-sm rounded-lg outline-none transition-base focus:border-blue-400 focus:ring-2 focus:ring-blue-400/15">
             <option value="">Todos os bairros ({totalEleitores})</option>
             {bairros.map((b) => <option key={b} value={b}>{b}</option>)}
           </select>
@@ -116,14 +116,14 @@ export default function SegmentacaoTool({ bairros, totalEleitores, segmentosInic
               <div className="font-display text-2xl font-extrabold text-blue-600">{contagem}</div>
             </div>
             <div className="flex gap-2">
-              <input placeholder="Nome da lista" value={nomeSegmento} onChange={(e) => setNomeSegmento(e.target.value)} className="border border-line px-3 py-2 text-sm" />
-              <button onClick={salvarSegmento} className="bg-blue-500 hover:bg-blue-600 text-white text-sm font-semibold px-4 py-2 border border-blue-400">Salvar lista</button>
+              <input placeholder="Nome da lista" value={nomeSegmento} onChange={(e) => setNomeSegmento(e.target.value)} className="border border-line/70 px-3.5 py-2.5 text-sm rounded-lg outline-none transition-base focus:border-blue-400 focus:ring-2 focus:ring-blue-400/15" />
+              <button onClick={salvarSegmento} className="bg-blue-500 hover:bg-blue-600 text-white rounded-lg shadow-sm hover:shadow-card-hover transition-base text-sm font-semibold px-4 py-2">Salvar lista</button>
             </div>
           </div>
         )}
       </div>
 
-      <div className="bg-white border border-line">
+      <div className="bg-white border border-line/60 rounded-xl shadow-card overflow-hidden">
         <div className="p-4 border-b border-line font-semibold text-sm">Listas salvas</div>
         <div className="p-4">
           {segmentos.length === 0 && <div className="text-sm text-slate-500 text-center py-4">Nenhuma lista salva ainda.</div>}
@@ -133,7 +133,7 @@ export default function SegmentacaoTool({ bairros, totalEleitores, segmentosInic
                 <div className="text-sm font-semibold">{s.nome}</div>
                 <div className="text-xs text-slate-500">{s.filtros?.bairro ? `Bairro: ${s.filtros.bairro}` : 'Todos os bairros'}</div>
               </div>
-              <button onClick={() => excluirSegmento(s.id)} className="border border-line px-2.5 py-1 text-xs font-semibold text-red-700">Excluir</button>
+              <button onClick={() => excluirSegmento(s.id)} className="border border-line/70 px-2.5 py-1 text-xs font-semibold text-red-700 rounded-md hover:bg-red-50 hover:border-red-200 transition-base">Excluir</button>
             </div>
           ))}
         </div>

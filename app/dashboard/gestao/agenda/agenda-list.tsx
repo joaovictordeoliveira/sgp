@@ -29,10 +29,10 @@ export default function AgendaList({ dadosIniciais }: { dadosIniciais: Evento[] 
   }
 
   return (
-    <div className="bg-white border border-line">
+    <div className="bg-white border border-line/60 rounded-xl shadow-card overflow-hidden">
       <div className="flex justify-between items-center p-4 border-b border-line">
         <h3 className="font-semibold text-sm">Próximos eventos</h3>
-        <button onClick={() => setModalAberto(true)} className="bg-blue-500 hover:bg-blue-600 text-white text-sm font-semibold px-4 py-2 border border-blue-400">+ Novo evento</button>
+        <button onClick={() => setModalAberto(true)} className="bg-blue-500 hover:bg-blue-600 text-white rounded-lg shadow-sm hover:shadow-card-hover transition-base text-sm font-semibold px-4 py-2">+ Novo evento</button>
       </div>
       <div className="p-4">
         {itens.length === 0 && <div className="text-sm text-slate-500 text-center py-6">Nenhum evento cadastrado.</div>}
@@ -44,33 +44,33 @@ export default function AgendaList({ dadosIniciais }: { dadosIniciais: Evento[] 
               </div>
               <div><div className="text-sm font-semibold">{ev.titulo}</div><div className="text-xs text-slate-500">{ev.local}</div></div>
             </div>
-            <button onClick={() => excluir(ev.id)} className="border border-line px-2.5 py-1 text-xs font-semibold text-red-700">Excluir</button>
+            <button onClick={() => excluir(ev.id)} className="border border-line/70 px-2.5 py-1 text-xs font-semibold text-red-700 rounded-md hover:bg-red-50 hover:border-red-200 transition-base">Excluir</button>
           </div>
         ))}
       </div>
 
       {modalAberto && (
-        <div className="fixed inset-0 bg-navy-950/55 flex items-center justify-center z-50 p-5">
+        <div className="fixed inset-0 bg-navy-950/60 backdrop-blur-sm flex items-center justify-center z-50 p-5">
           <div className="bg-white w-full max-w-md border border-line p-6">
             <h3 className="font-bold text-lg mb-4">Novo evento</h3>
             <div className="space-y-3">
-              <input placeholder="Título *" value={form.titulo} onChange={(e) => setForm({ ...form, titulo: e.target.value })} className="w-full border border-line px-3 py-2 text-sm" />
-              <input type="date" value={form.data} onChange={(e) => setForm({ ...form, data: e.target.value })} className="w-full border border-line px-3 py-2 text-sm" />
+              <input placeholder="Título *" value={form.titulo} onChange={(e) => setForm({ ...form, titulo: e.target.value })} className="w-full border border-line/70 px-3.5 py-2.5 text-sm rounded-lg outline-none transition-base focus:border-blue-400 focus:ring-2 focus:ring-blue-400/15" />
+              <input type="date" value={form.data} onChange={(e) => setForm({ ...form, data: e.target.value })} className="w-full border border-line/70 px-3.5 py-2.5 text-sm rounded-lg outline-none transition-base focus:border-blue-400 focus:ring-2 focus:ring-blue-400/15" />
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block font-mono text-[9.5px] uppercase tracking-wide text-slate-500 mb-1">Início</label>
-                  <input type="time" value={form.hora} onChange={(e) => setForm({ ...form, hora: e.target.value })} className="w-full border border-line px-3 py-2 text-sm" />
+                  <input type="time" value={form.hora} onChange={(e) => setForm({ ...form, hora: e.target.value })} className="w-full border border-line/70 px-3.5 py-2.5 text-sm rounded-lg outline-none transition-base focus:border-blue-400 focus:ring-2 focus:ring-blue-400/15" />
                 </div>
                 <div>
                   <label className="block font-mono text-[9.5px] uppercase tracking-wide text-slate-500 mb-1">Término</label>
-                  <input type="time" value={form.horaFim} onChange={(e) => setForm({ ...form, horaFim: e.target.value })} className="w-full border border-line px-3 py-2 text-sm" />
+                  <input type="time" value={form.horaFim} onChange={(e) => setForm({ ...form, horaFim: e.target.value })} className="w-full border border-line/70 px-3.5 py-2.5 text-sm rounded-lg outline-none transition-base focus:border-blue-400 focus:ring-2 focus:ring-blue-400/15" />
                 </div>
               </div>
-              <input placeholder="Local" value={form.local} onChange={(e) => setForm({ ...form, local: e.target.value })} className="w-full border border-line px-3 py-2 text-sm" />
+              <input placeholder="Local" value={form.local} onChange={(e) => setForm({ ...form, local: e.target.value })} className="w-full border border-line/70 px-3.5 py-2.5 text-sm rounded-lg outline-none transition-base focus:border-blue-400 focus:ring-2 focus:ring-blue-400/15" />
             </div>
             <div className="flex justify-end gap-2 mt-5">
-              <button onClick={() => setModalAberto(false)} className="border border-line px-4 py-2 text-sm font-semibold text-slate-500">Cancelar</button>
-              <button onClick={salvar} className="bg-blue-500 hover:bg-blue-600 text-white px-5 py-2 text-sm font-semibold border border-blue-400">Salvar</button>
+              <button onClick={() => setModalAberto(false)} className="border border-line/70 px-4 py-2 text-sm font-semibold text-slate-500 rounded-lg hover:bg-paper-dim transition-base">Cancelar</button>
+              <button onClick={salvar} className="bg-blue-500 hover:bg-blue-600 text-white rounded-lg shadow-sm hover:shadow-card-hover transition-base px-5 py-2 text-sm font-semibold">Salvar</button>
             </div>
           </div>
         </div>

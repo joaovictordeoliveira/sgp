@@ -37,7 +37,7 @@ export default function ProposicoesKanban({ dadosIniciais }: { dadosIniciais: Pr
   return (
     <div>
       <div className="flex justify-end mb-4">
-        <button onClick={() => setModalAberto(true)} className="bg-blue-500 hover:bg-blue-600 text-white text-sm font-semibold px-4 py-2 border border-blue-400">
+        <button onClick={() => setModalAberto(true)} className="bg-blue-500 hover:bg-blue-600 text-white rounded-lg shadow-sm hover:shadow-card-hover transition-base text-sm font-semibold px-4 py-2">
           + Nova proposição
         </button>
       </div>
@@ -49,7 +49,7 @@ export default function ProposicoesKanban({ dadosIniciais }: { dadosIniciais: Pr
               {col} <span className="bg-paper-dim px-1.5 rounded-full font-bold">{itens.filter((i) => i.status === col).length}</span>
             </div>
             {itens.filter((i) => i.status === col).map((p) => (
-              <div key={p.id} className="bg-white border border-line p-3 mb-2.5">
+              <div key={p.id} className="bg-white border border-line/60 rounded-xl shadow-card p-3 mb-2.5">
                 <span className="font-mono text-[9.5px] text-blue-600 uppercase block mb-1.5">{p.tipo}</span>
                 <b className="block text-[12.5px] leading-snug mb-1.5">{p.titulo}</b>
                 <div className="flex gap-1.5 mt-2">
@@ -65,19 +65,19 @@ export default function ProposicoesKanban({ dadosIniciais }: { dadosIniciais: Pr
       </div>
 
       {modalAberto && (
-        <div className="fixed inset-0 bg-navy-950/55 flex items-center justify-center z-50 p-5">
+        <div className="fixed inset-0 bg-navy-950/60 backdrop-blur-sm flex items-center justify-center z-50 p-5">
           <div className="bg-white w-full max-w-md border border-line p-6">
             <h3 className="font-bold text-lg mb-4">Nova proposição</h3>
             <div className="space-y-3">
-              <select value={form.tipo} onChange={(e) => setForm({ ...form, tipo: e.target.value })} className="w-full border border-line px-3 py-2 text-sm">
+              <select value={form.tipo} onChange={(e) => setForm({ ...form, tipo: e.target.value })} className="w-full border border-line/70 px-3.5 py-2.5 text-sm rounded-lg outline-none transition-base focus:border-blue-400 focus:ring-2 focus:ring-blue-400/15">
                 <option>Projeto de lei</option><option>Indicação</option><option>Requerimento</option><option>Moção</option>
               </select>
-              <input placeholder="Título / ementa *" value={form.titulo} onChange={(e) => setForm({ ...form, titulo: e.target.value })} className="w-full border border-line px-3 py-2 text-sm" />
-              <input placeholder="Detalhe (órgão / pauta)" value={form.detalhe} onChange={(e) => setForm({ ...form, detalhe: e.target.value })} className="w-full border border-line px-3 py-2 text-sm" />
+              <input placeholder="Título / ementa *" value={form.titulo} onChange={(e) => setForm({ ...form, titulo: e.target.value })} className="w-full border border-line/70 px-3.5 py-2.5 text-sm rounded-lg outline-none transition-base focus:border-blue-400 focus:ring-2 focus:ring-blue-400/15" />
+              <input placeholder="Detalhe (órgão / pauta)" value={form.detalhe} onChange={(e) => setForm({ ...form, detalhe: e.target.value })} className="w-full border border-line/70 px-3.5 py-2.5 text-sm rounded-lg outline-none transition-base focus:border-blue-400 focus:ring-2 focus:ring-blue-400/15" />
             </div>
             <div className="flex justify-end gap-2 mt-5">
-              <button onClick={() => setModalAberto(false)} className="border border-line px-4 py-2 text-sm font-semibold text-slate-500">Cancelar</button>
-              <button onClick={salvar} className="bg-blue-500 hover:bg-blue-600 text-white px-5 py-2 text-sm font-semibold border border-blue-400">Salvar</button>
+              <button onClick={() => setModalAberto(false)} className="border border-line/70 px-4 py-2 text-sm font-semibold text-slate-500 rounded-lg hover:bg-paper-dim transition-base">Cancelar</button>
+              <button onClick={salvar} className="bg-blue-500 hover:bg-blue-600 text-white rounded-lg shadow-sm hover:shadow-card-hover transition-base px-5 py-2 text-sm font-semibold">Salvar</button>
             </div>
           </div>
         </div>

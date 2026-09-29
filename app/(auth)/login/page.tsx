@@ -28,9 +28,9 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-navy-950 px-4">
-      <div className="w-full max-w-sm bg-white border border-line p-8">
+      <div className="w-full max-w-sm bg-white border border-line/60 rounded-xl shadow-card p-8">
         <div className="flex items-center gap-3 mb-8">
-          <div className="w-9 h-9 border border-blue-400 flex items-center justify-center font-display font-extrabold text-xs text-blue-600">
+          <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center font-display font-extrabold text-xs text-white shadow-card">
             SGP
           </div>
           <div className="font-display font-bold text-sm leading-tight">
@@ -50,7 +50,7 @@ export default function LoginPage() {
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full border border-line px-3 py-2 text-sm bg-paper focus:bg-white outline-none"
+              className="w-full border border-line/70 px-3.5 py-2.5 text-sm bg-paper rounded-lg outline-none transition-base focus:border-blue-400 focus:ring-2 focus:ring-blue-400/15 focus:bg-white focus:bg-white outline-none"
             />
           </div>
           <div>
@@ -62,7 +62,7 @@ export default function LoginPage() {
               required
               value={senha}
               onChange={(e) => setSenha(e.target.value)}
-              className="w-full border border-line px-3 py-2 text-sm bg-paper focus:bg-white outline-none"
+              className="w-full border border-line/70 px-3.5 py-2.5 text-sm bg-paper rounded-lg outline-none transition-base focus:border-blue-400 focus:ring-2 focus:ring-blue-400/15 focus:bg-white focus:bg-white outline-none"
             />
           </div>
 
@@ -71,7 +71,7 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={carregando}
-            className="w-full bg-blue-500 hover:bg-blue-600 text-white text-sm font-semibold py-2.5 border border-blue-400 disabled:opacity-60"
+            className="w-full bg-blue-500 hover:bg-blue-600 text-white rounded-lg shadow-sm hover:shadow-card-hover transition-base text-sm font-semibold py-2.5 disabled:opacity-60"
           >
             {carregando ? 'Entrando...' : 'Entrar'}
           </button>

@@ -161,7 +161,7 @@ export default function CheckinPage() {
 
         <div className="space-y-2.5">
           {rota.paradas.sort((a, b) => a.ordem - b.ordem).map((p) => (
-            <div key={p.ordem} className={`bg-white border border-line p-3.5 ${p.concluida ? 'opacity-55' : ''}`}>
+            <div key={p.ordem} className={`bg-white border border-line/60 rounded-xl shadow-card p-3.5 ${p.concluida ? 'opacity-55' : ''}`}>
               <div className="flex justify-between items-start mb-2">
                 <b className="text-sm">{p.endereco}</b>
                 <span className="font-mono text-[10px] bg-paper-dim px-1.5 py-0.5">{p.ordem}</span>

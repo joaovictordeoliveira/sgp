@@ -82,18 +82,18 @@ export default function DocumentosTable({ dadosIniciais }: { dadosIniciais: Docu
 
   return (
     <div className="space-y-5">
-      <div className="bg-white border border-line p-4 flex gap-2.5 flex-wrap items-end">
+      <div className="bg-white border border-line/60 rounded-xl shadow-card p-4 flex gap-2.5 flex-wrap items-end">
         <select value={tipo} onChange={(e) => setTipo(e.target.value)} className="border border-line px-2.5 py-2 text-xs">
           <option>Ofício</option><option>Requerimento</option><option>Indicação</option><option>Moção</option>
         </select>
         <input placeholder="Destinatário / órgão" value={destinatario} onChange={(e) => setDestinatario(e.target.value)} className="border border-line px-2.5 py-2 text-xs min-w-[220px]" />
         <input placeholder="Assunto" value={assunto} onChange={(e) => setAssunto(e.target.value)} className="border border-line px-2.5 py-2 text-xs min-w-[220px]" />
-        <button onClick={gerar} disabled={gerando} className="bg-blue-500 hover:bg-blue-600 text-white text-xs font-semibold px-4 py-2 border border-blue-400 disabled:opacity-60">
+        <button onClick={gerar} disabled={gerando} className="bg-blue-500 hover:bg-blue-600 text-white rounded-lg shadow-sm hover:shadow-card-hover transition-base text-xs font-semibold px-4 py-2 disabled:opacity-60">
           {gerando ? 'Gerando...' : 'Gerar documento'}
         </button>
       </div>
 
-      <div className="bg-white border border-line">
+      <div className="bg-white border border-line/60 rounded-xl shadow-card overflow-hidden">
         <table className="w-full text-sm">
           <thead>
             <tr className="text-left font-mono text-[10px] uppercase tracking-wide text-slate-500 border-b border-line">
@@ -107,15 +107,15 @@ export default function DocumentosTable({ dadosIniciais }: { dadosIniciais: Docu
                 <td className="p-3">{d.destinatario}</td>
                 <td className="p-3">{d.assunto}</td>
                 <td className="p-3">
-                  <select value={d.status} onChange={(e) => atualizarStatus(d.id, e.target.value)} className={`text-xs font-semibold border-none px-2 py-1 ${STATUS_CLASSES[d.status]}`}>
+                  <select value={d.status} onChange={(e) => atualizarStatus(d.id, e.target.value)} className={`text-xs font-semibold border-none px-2.5 py-1 rounded-md ${STATUS_CLASSES[d.status]}`}>
                     {STATUS_OPTIONS.map((s) => <option key={s}>{s}</option>)}
                   </select>
                 </td>
                 <td className="p-3 whitespace-nowrap">
-                  <button onClick={() => gerarPdf(d.id)} disabled={gerandoPdfId === d.id} className="border border-line px-2.5 py-1 text-xs font-semibold text-blue-600 mr-1.5 disabled:opacity-60">
+                  <button onClick={() => gerarPdf(d.id)} disabled={gerandoPdfId === d.id} className="border border-line/70 px-2.5 py-1 text-xs font-semibold text-blue-600 rounded-md hover:bg-blue-50 hover:border-blue-200 transition-base mr-1.5 disabled:opacity-60">
                     {gerandoPdfId === d.id ? 'Gerando...' : d.arquivo_url ? 'Ver PDF' : 'Gerar PDF'}
                   </button>
-                  <button onClick={() => excluir(d.id)} className="border border-line px-2.5 py-1 text-xs font-semibold text-red-700">Excluir</button>
+                  <button onClick={() => excluir(d.id)} className="border border-line/70 px-2.5 py-1 text-xs font-semibold text-red-700 rounded-md hover:bg-red-50 hover:border-red-200 transition-base">Excluir</button>
                 </td>
               </tr>
             ))}

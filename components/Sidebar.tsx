@@ -35,7 +35,7 @@ export default function Sidebar({ nomeUsuario }: { nomeUsuario: string }) {
   return (
     <aside className="bg-navy-950 text-white p-4 flex flex-col sticky top-0 h-screen overflow-y-auto w-[250px] shrink-0">
       <div className="flex items-center gap-2.5 pb-5 border-b border-navy-800 mb-4 px-1.5">
-        <div className="w-8 h-8 border border-blue-400 flex items-center justify-center font-display font-extrabold text-xs text-blue-400 relative shrink-0">
+        <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center font-display font-extrabold text-xs text-white shadow-card shrink-0">
           SGP
         </div>
         <div className="font-display font-bold text-[13px] leading-tight">

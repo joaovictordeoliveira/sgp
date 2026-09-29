@@ -25,6 +25,7 @@ create table eleitores (
   email text,
   genero text,
   bairro text not null,
+  municipio text,
   zona text,
   endereco text,
   lat double precision,
@@ -43,6 +44,10 @@ create table atendimentos (
   cidadao text not null,
   assunto text not null,
   bairro text not null,
+  municipio text,
+  endereco text,
+  telefone text,
+  email text,
   canal text default 'WhatsApp',
   status text not null default 'Aberto' check (status in ('Aberto', 'Em andamento', 'Concluído')),
   data date default current_date,
@@ -171,6 +176,19 @@ create table entregas_logistica (
   criado_em timestamptz default now()
 );
 
+create table contratos_logistica (
+  id uuid primary key default uuid_generate_v4(),
+  fornecedor text not null,
+  objeto text not null,
+  valor numeric(12,2),
+  data_inicio date,
+  data_fim date,
+  status text not null default 'Ativo' check (status in ('Ativo', 'Pendente', 'Encerrado')),
+  observacao text,
+  criado_por uuid references perfis(id),
+  criado_em timestamptz default now()
+);
+
 -- ============================================================
 -- ROW LEVEL SECURITY — protege os dados por usuário autenticado
 -- ============================================================
@@ -188,6 +206,7 @@ alter table rotas enable row level security;
 alter table visitas_checkin enable row level security;
 alter table materiais_logistica enable row level security;
 alter table entregas_logistica enable row level security;
+alter table contratos_logistica enable row level security;
 
 -- Regra padrão: qualquer usuário autenticado do gabinete pode ler e escrever.
 -- (Ajuste depois para regras por papel, ex: assessor só vê a própria rota)
@@ -225,6 +244,8 @@ create policy "Usuários autenticados podem tudo em materiais_logistica"
   on materiais_logistica for all using (auth.role() = 'authenticated');
 create policy "Usuários autenticados podem tudo em entregas_logistica"
   on entregas_logistica for all using (auth.role() = 'authenticated');
+create policy "Usuários autenticados podem tudo em contratos_logistica"
+  on contratos_logistica for all using (auth.role() = 'authenticated');
 
 create policy "Usuário vê e edita o próprio perfil"
   on perfis for select using (auth.uid() = id);

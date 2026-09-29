@@ -7,7 +7,9 @@ type Eleitor = {
   id: string
   nome: string
   telefone: string | null
+  email: string | null
   bairro: string
+  municipio: string | null
   endereco: string | null
   lat: number | null
   lng: number | null
@@ -33,7 +35,7 @@ function formatarAniversario(dataNascimento: string | null): string {
   return `${d}/${m}`
 }
 
-const FORM_VAZIO = { nome: '', telefone: '', bairro: '', endereco: '', interesse: '', tags: '', dataNascimento: '', cpf: '' }
+const FORM_VAZIO = { nome: '', telefone: '', email: '', bairro: '', municipio: '', endereco: '', interesse: '', tags: '', dataNascimento: '', cpf: '' }
 
 export default function EleitoresTable({ eleitoresIniciais }: { eleitoresIniciais: Eleitor[] }) {
   const supabase = createClient()
@@ -44,8 +46,9 @@ export default function EleitoresTable({ eleitoresIniciais }: { eleitoresIniciai
   const [editandoId, setEditandoId] = useState<string | null>(null)
   const [form, setForm] = useState(FORM_VAZIO)
 
-  async function geocodificar(endereco: string, bairro: string) {
-    const query = encodeURIComponent(`${endereco}, ${bairro}, São Paulo, SP, Brasil`)
+  async function geocodificar(endereco: string, bairro: string, municipio: string) {
+    const cidade = municipio ? `${municipio}, SP` : 'São Paulo, SP'
+    const query = encodeURIComponent(`${endereco}, ${bairro}, ${cidade}, Brasil`)
     const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${query}&key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY}`
     try {
       const res = await fetch(url)
@@ -71,7 +74,9 @@ export default function EleitoresTable({ eleitoresIniciais }: { eleitoresIniciai
     setForm({
       nome: e.nome,
       telefone: e.telefone ?? '',
+      email: e.email ?? '',
       bairro: e.bairro,
+      municipio: e.municipio ?? '',
       endereco: e.endereco ?? '',
       interesse: e.interesse ?? '',
       tags: (e.tags ?? []).join(', '),
@@ -89,13 +94,13 @@ export default function EleitoresTable({ eleitoresIniciais }: { eleitoresIniciai
     let lng: number | null = null
 
     const registroAtual = editandoId ? eleitores.find((e) => e.id === editandoId) : null
-    const enderecoMudou = !registroAtual || registroAtual.endereco !== form.endereco || registroAtual.bairro !== form.bairro
+    const enderecoMudou = !registroAtual || registroAtual.endereco !== form.endereco || registroAtual.bairro !== form.bairro || registroAtual.municipio !== form.municipio
 
     if (registroAtual && !enderecoMudou) {
       lat = registroAtual.lat
       lng = registroAtual.lng
     } else if (form.endereco) {
-      const geo = await geocodificar(form.endereco, form.bairro)
+      const geo = await geocodificar(form.endereco, form.bairro, form.municipio)
       lat = geo.lat
       lng = geo.lng
     }
@@ -103,7 +108,9 @@ export default function EleitoresTable({ eleitoresIniciais }: { eleitoresIniciai
     const payload = {
       nome: form.nome,
       telefone: form.telefone || null,
+      email: form.email || null,
       bairro: form.bairro,
+      municipio: form.municipio || null,
       endereco: form.endereco || null,
       lat, lng,
       interesse: form.interesse || null,
@@ -117,12 +124,16 @@ export default function EleitoresTable({ eleitoresIniciais }: { eleitoresIniciai
       if (!error && data) {
         setEleitores((prev) => prev.map((e) => (e.id === editandoId ? (data as Eleitor) : e)))
         fecharModal()
+      } else if (error) {
+        alert('Erro ao salvar: ' + error.message)
       }
     } else {
       const { data, error } = await supabase.from('eleitores').insert(payload).select().single()
       if (!error && data) {
         setEleitores((prev) => [data as Eleitor, ...prev])
         fecharModal()
+      } else if (error) {
+        alert('Erro ao salvar: ' + error.message)
       }
     }
     setSalvando(false)
@@ -143,74 +154,80 @@ export default function EleitoresTable({ eleitoresIniciais }: { eleitoresIniciai
   const filtrados = eleitores.filter((e) => e.nome.toLowerCase().includes(busca.toLowerCase()))
 
   return (
-    <div className="bg-white border border-line">
+    <div className="bg-white border border-line/60 rounded-xl shadow-card overflow-hidden">
       <div className="flex justify-between items-center p-4 border-b border-line flex-wrap gap-3">
         <input
           placeholder="Buscar por nome..."
           value={busca}
           onChange={(e) => setBusca(e.target.value)}
-          className="border border-line px-3 py-2 text-sm bg-paper min-w-[220px]"
+          className="border border-line/70 px-3.5 py-2.5 text-sm bg-paper rounded-lg outline-none transition-base focus:border-blue-400 focus:ring-2 focus:ring-blue-400/15 focus:bg-white min-w-[220px]"
         />
-        <button onClick={abrirNovo} className="bg-blue-500 hover:bg-blue-600 text-white text-sm font-semibold px-4 py-2 border border-blue-400">
+        <button onClick={abrirNovo} className="bg-blue-500 hover:bg-blue-600 text-white rounded-lg shadow-sm hover:shadow-card-hover transition-base text-sm font-semibold px-4 py-2">
           + Novo eleitor
         </button>
       </div>
 
-      <table className="w-full text-sm">
-        <thead>
-          <tr className="text-left font-mono text-[10px] uppercase tracking-wide text-slate-500 border-b border-line">
-            <th className="p-3">Nome</th>
-            <th className="p-3">Bairro</th>
-            <th className="p-3">Aniversário</th>
-            <th className="p-3">Interesse</th>
-            <th className="p-3">Localização</th>
-            <th className="p-3"></th>
-          </tr>
-        </thead>
-        <tbody>
-          {filtrados.map((e) => (
-            <tr key={e.id} className="border-b border-paper-dim">
-              <td className="p-3 font-semibold">{e.nome}</td>
-              <td className="p-3">{e.bairro}</td>
-              <td className="p-3">
-                {formatarAniversario(e.data_nascimento)}
-                {calcularIdade(e.data_nascimento) !== null && <span className="text-slate-500"> · {calcularIdade(e.data_nascimento)} anos</span>}
-              </td>
-              <td className="p-3">{e.interesse || '—'}</td>
-              <td className="p-3">{e.lat ? '📍 Localizado' : '—'}</td>
-              <td className="p-3 whitespace-nowrap">
-                <button onClick={() => abrirEdicao(e)} className="border border-line px-2.5 py-1 text-xs font-semibold text-blue-600 mr-1.5">Editar</button>
-                <button onClick={() => excluirEleitor(e.id)} className="border border-line px-2.5 py-1 text-xs font-semibold text-red-700">Excluir</button>
-              </td>
+      <div className="overflow-x-auto">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="text-left font-mono text-[10px] uppercase tracking-wide text-slate-500 border-b border-line">
+              <th className="p-3">Nome</th>
+              <th className="p-3">Bairro</th>
+              <th className="p-3">Município</th>
+              <th className="p-3">Aniversário</th>
+              <th className="p-3">Localização</th>
+              <th className="p-3"></th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {filtrados.map((e) => (
+              <tr key={e.id} className="border-b border-paper-dim">
+                <td className="p-3 font-semibold whitespace-nowrap">{e.nome}</td>
+                <td className="p-3">{e.bairro}</td>
+                <td className="p-3">{e.municipio || '—'}</td>
+                <td className="p-3 whitespace-nowrap">
+                  {formatarAniversario(e.data_nascimento)}
+                  {calcularIdade(e.data_nascimento) !== null && <span className="text-slate-500"> · {calcularIdade(e.data_nascimento)} anos</span>}
+                </td>
+                <td className="p-3">{e.lat ? '📍 Localizado' : '—'}</td>
+                <td className="p-3 whitespace-nowrap">
+                  <button onClick={() => abrirEdicao(e)} className="border border-line/70 px-2.5 py-1 text-xs font-semibold text-blue-600 rounded-md hover:bg-blue-50 hover:border-blue-200 transition-base mr-1.5">Editar</button>
+                  <button onClick={() => excluirEleitor(e.id)} className="border border-line/70 px-2.5 py-1 text-xs font-semibold text-red-700 rounded-md hover:bg-red-50 hover:border-red-200 transition-base">Excluir</button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
 
       {modalAberto && (
-        <div className="fixed inset-0 bg-navy-950/55 flex items-center justify-center z-50 p-5">
+        <div className="fixed inset-0 bg-navy-950/60 backdrop-blur-sm flex items-center justify-center z-50 p-5">
           <div className="bg-white w-full max-w-md border border-line p-6 max-h-[90vh] overflow-y-auto">
             <h3 className="font-bold text-lg mb-4">{editandoId ? 'Editar eleitor' : 'Novo eleitor'}</h3>
             <div className="space-y-3">
-              <input placeholder="Nome completo *" value={form.nome} onChange={(e) => setForm({ ...form, nome: e.target.value })} className="w-full border border-line px-3 py-2 text-sm" />
-              <input placeholder="Bairro *" value={form.bairro} onChange={(e) => setForm({ ...form, bairro: e.target.value })} className="w-full border border-line px-3 py-2 text-sm" />
-              <input placeholder="Endereço (rua, número) — opcional" value={form.endereco} onChange={(e) => setForm({ ...form, endereco: e.target.value })} className="w-full border border-line px-3 py-2 text-sm" />
-              <input placeholder="Telefone" value={form.telefone} onChange={(e) => setForm({ ...form, telefone: e.target.value })} className="w-full border border-line px-3 py-2 text-sm" />
+              <input placeholder="Nome completo *" value={form.nome} onChange={(e) => setForm({ ...form, nome: e.target.value })} className="w-full border border-line/70 px-3.5 py-2.5 text-sm rounded-lg outline-none transition-base focus:border-blue-400 focus:ring-2 focus:ring-blue-400/15" />
+              <input placeholder="Telefone" value={form.telefone} onChange={(e) => setForm({ ...form, telefone: e.target.value })} className="w-full border border-line/70 px-3.5 py-2.5 text-sm rounded-lg outline-none transition-base focus:border-blue-400 focus:ring-2 focus:ring-blue-400/15" />
+              <input placeholder="E-mail" type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} className="w-full border border-line/70 px-3.5 py-2.5 text-sm rounded-lg outline-none transition-base focus:border-blue-400 focus:ring-2 focus:ring-blue-400/15" />
+              <div className="grid grid-cols-2 gap-3">
+                <input placeholder="Bairro *" value={form.bairro} onChange={(e) => setForm({ ...form, bairro: e.target.value })} className="w-full border border-line/70 px-3.5 py-2.5 text-sm rounded-lg outline-none transition-base focus:border-blue-400 focus:ring-2 focus:ring-blue-400/15" />
+                <input placeholder="Município" value={form.municipio} onChange={(e) => setForm({ ...form, municipio: e.target.value })} className="w-full border border-line/70 px-3.5 py-2.5 text-sm rounded-lg outline-none transition-base focus:border-blue-400 focus:ring-2 focus:ring-blue-400/15" />
+              </div>
+              <input placeholder="Endereço (rua, número) — opcional" value={form.endereco} onChange={(e) => setForm({ ...form, endereco: e.target.value })} className="w-full border border-line/70 px-3.5 py-2.5 text-sm rounded-lg outline-none transition-base focus:border-blue-400 focus:ring-2 focus:ring-blue-400/15" />
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block font-mono text-[9.5px] uppercase tracking-wide text-slate-500 mb-1">Data de nascimento</label>
-                  <input type="date" value={form.dataNascimento} onChange={(e) => setForm({ ...form, dataNascimento: e.target.value })} className="w-full border border-line px-3 py-2 text-sm" />
+                  <input type="date" value={form.dataNascimento} onChange={(e) => setForm({ ...form, dataNascimento: e.target.value })} className="w-full border border-line/70 px-3.5 py-2.5 text-sm rounded-lg outline-none transition-base focus:border-blue-400 focus:ring-2 focus:ring-blue-400/15" />
                 </div>
                 <div>
                   <label className="block font-mono text-[9.5px] uppercase tracking-wide text-slate-500 mb-1">CPF</label>
-                  <input placeholder="000.000.000-00" value={form.cpf} onChange={(e) => setForm({ ...form, cpf: e.target.value })} className="w-full border border-line px-3 py-2 text-sm" />
+                  <input placeholder="000.000.000-00" value={form.cpf} onChange={(e) => setForm({ ...form, cpf: e.target.value })} className="w-full border border-line/70 px-3.5 py-2.5 text-sm rounded-lg outline-none transition-base focus:border-blue-400 focus:ring-2 focus:ring-blue-400/15" />
                 </div>
               </div>
-              <input placeholder="Tags (separadas por vírgula)" value={form.tags} onChange={(e) => setForm({ ...form, tags: e.target.value })} className="w-full border border-line px-3 py-2 text-sm" />
+              <input placeholder="Tags (separadas por vírgula)" value={form.tags} onChange={(e) => setForm({ ...form, tags: e.target.value })} className="w-full border border-line/70 px-3.5 py-2.5 text-sm rounded-lg outline-none transition-base focus:border-blue-400 focus:ring-2 focus:ring-blue-400/15" />
             </div>
             <div className="flex justify-end gap-2 mt-5">
-              <button onClick={fecharModal} className="border border-line px-4 py-2 text-sm font-semibold text-slate-500">Cancelar</button>
-              <button onClick={salvarEleitor} disabled={salvando} className="bg-blue-500 hover:bg-blue-600 text-white px-5 py-2 text-sm font-semibold border border-blue-400 disabled:opacity-60">
+              <button onClick={fecharModal} className="border border-line/70 px-4 py-2 text-sm font-semibold text-slate-500 rounded-lg hover:bg-paper-dim transition-base">Cancelar</button>
+              <button onClick={salvarEleitor} disabled={salvando} className="bg-blue-500 hover:bg-blue-600 text-white rounded-lg shadow-sm hover:shadow-card-hover transition-base px-5 py-2 text-sm font-semibold disabled:opacity-60">
                 {salvando ? 'Salvando...' : 'Salvar eleitor'}
               </button>
             </div>
