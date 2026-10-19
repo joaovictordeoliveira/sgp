@@ -1,16 +1,28 @@
 'use client'
 
+import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 
-const NAV = [
+type Item = { href: string; label: string; icon: string }
+type ItemComSubmenu = { label: string; icon: string; children: Item[] }
+type NavItem = Item | ItemComSubmenu
+
+const NAV: { group: string; items: NavItem[] }[] = [
   { group: 'Geral', items: [{ href: '/dashboard', label: 'Visão geral', icon: '◆' }] },
   { group: 'Território', items: [{ href: '/dashboard/territorio', label: 'Mapa eleitoral', icon: '◈' }, { href: '/dashboard/eleitores', label: 'Base de eleitores', icon: '▤' }] },
   { group: 'Campo', items: [{ href: '/dashboard/campo', label: 'Equipe de rua', icon: '▲' }] },
   { group: 'Comunicação', items: [{ href: '/dashboard/comunicacao', label: 'Disparos e segmentação', icon: '✉' }] },
   { group: 'Gabinete', items: [
-    { href: '/dashboard/gabinete/atendimentos', label: 'Atendimento ao cidadão', icon: '☎' },
+    {
+      label: 'Atendimento', icon: '☎',
+      children: [
+        { href: '/dashboard/gabinete/atendimentos', label: 'Atendimento ao cidadão', icon: '·' },
+        { href: '/dashboard/gabinete/aniversarios', label: 'Calendário de aniversários', icon: '·' },
+        { href: '/dashboard/gabinete/aniversariantes', label: 'Aniversariantes do mês', icon: '·' },
+      ],
+    },
     { href: '/dashboard/gabinete/documentos', label: 'Documentos & ofícios', icon: '▦' },
     { href: '/dashboard/gabinete/proposicoes', label: 'Proposições', icon: '§' },
     { href: '/dashboard/logistica', label: 'Logística', icon: '▧' },
@@ -21,10 +33,15 @@ const NAV = [
   ]},
 ]
 
+function temSubmenu(item: NavItem): item is ItemComSubmenu {
+  return 'children' in item
+}
+
 export default function Sidebar({ nomeUsuario }: { nomeUsuario: string }) {
   const pathname = usePathname()
   const router = useRouter()
   const supabase = createClient()
+  const [abertos, setAbertos] = useState<Record<string, boolean>>({})
 
   async function sair() {
     await supabase.auth.signOut()
@@ -51,6 +68,44 @@ export default function Sidebar({ nomeUsuario }: { nomeUsuario: string }) {
             {group.group}
           </div>
           {group.items.map((item) => {
+            if (temSubmenu(item)) {
+              const filhoAtivo = item.children.some((c) => pathname === c.href)
+              // abre sozinho se a página atual for de um filho; senão respeita o clique do usuário
+              const aberto = abertos[item.label] ?? filhoAtivo
+              return (
+                <div key={item.label}>
+                  <button
+                    onClick={() => setAbertos((prev) => ({ ...prev, [item.label]: !aberto }))}
+                    className={`w-full flex items-center gap-2.5 px-2.5 py-2.5 text-[13.5px] font-medium border-l-2 text-left ${
+                      filhoAtivo ? 'text-white border-amber' : 'text-slate-300 border-transparent hover:bg-navy-900 hover:text-white'
+                    }`}
+                  >
+                    <span className="w-4 text-center text-sm shrink-0">{item.icon}</span>
+                    <span className="flex-1">{item.label}</span>
+                    <span className={`text-[10px] transition-transform ${aberto ? 'rotate-90' : ''}`}>▶</span>
+                  </button>
+                  {aberto && (
+                    <div className="ml-6 border-l border-navy-800">
+                      {item.children.map((child) => {
+                        const active = pathname === child.href
+                        return (
+                          <Link
+                            key={child.href}
+                            href={child.href}
+                            className={`block pl-3 pr-2.5 py-2 text-[13px] ${
+                              active ? 'text-white bg-navy-800 rounded-r-md' : 'text-slate-300 hover:text-white hover:bg-navy-900 rounded-r-md'
+                            }`}
+                          >
+                            {child.label}
+                          </Link>
+                        )
+                      })}
+                    </div>
+                  )}
+                </div>
+              )
+            }
+
             const active = pathname === item.href
             return (
               <Link
