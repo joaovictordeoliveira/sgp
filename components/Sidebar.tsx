@@ -4,44 +4,15 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import { NAV, Permissoes, podeEm } from '@/lib/modulos'
 
-type Item = { href: string; label: string; icon: string }
-type ItemComSubmenu = { label: string; icon: string; children: Item[] }
-type NavItem = Item | ItemComSubmenu
+type Props = { nomeUsuario: string; avatarUrl: string | null; isAdmin: boolean; permissoes: Permissoes; gabinete: { nome: string | null; logo: string | null } }
 
-const NAV: { group: string; items: NavItem[] }[] = [
-  { group: 'Geral', items: [{ href: '/dashboard', label: 'Visão geral', icon: '◆' }] },
-  { group: 'Território', items: [{ href: '/dashboard/territorio', label: 'Mapa eleitoral', icon: '◈' }, { href: '/dashboard/eleitores', label: 'Base de eleitores', icon: '▤' }] },
-  { group: 'Campo', items: [{ href: '/dashboard/campo', label: 'Equipe de rua', icon: '▲' }] },
-  { group: 'Comunicação', items: [{ href: '/dashboard/comunicacao', label: 'Disparos e segmentação', icon: '✉' }] },
-  { group: 'Gabinete', items: [
-    {
-      label: 'Atendimento', icon: '☎',
-      children: [
-        { href: '/dashboard/gabinete/atendimentos', label: 'Atendimento ao cidadão', icon: '·' },
-        { href: '/dashboard/gabinete/aniversarios', label: 'Calendário de aniversários', icon: '·' },
-        { href: '/dashboard/gabinete/aniversariantes', label: 'Aniversariantes do mês', icon: '·' },
-      ],
-    },
-    { href: '/dashboard/gabinete/documentos', label: 'Documentos & ofícios', icon: '▦' },
-    { href: '/dashboard/gabinete/proposicoes', label: 'Proposições', icon: '§' },
-    { href: '/dashboard/logistica', label: 'Logística', icon: '▧' },
-  ]},
-  { group: 'Gestão', items: [
-    { href: '/dashboard/gestao/financeiro', label: 'Financeiro', icon: '$' },
-    { href: '/dashboard/gestao/agenda', label: 'Agenda', icon: '◷' },
-  ]},
-]
-
-function temSubmenu(item: NavItem): item is ItemComSubmenu {
-  return 'children' in item
-}
-
-export default function Sidebar({ nomeUsuario }: { nomeUsuario: string }) {
+export default function Sidebar({ nomeUsuario, avatarUrl, isAdmin, permissoes, gabinete }: Props) {
   const pathname = usePathname()
   const router = useRouter()
   const supabase = createClient()
-  const [abertos, setAbertos] = useState<Record<string, boolean>>({})
+  const [menuAberto, setMenuAberto] = useState(false)
 
   async function sair() {
     await supabase.auth.signOut()
@@ -49,91 +20,63 @@ export default function Sidebar({ nomeUsuario }: { nomeUsuario: string }) {
     router.refresh()
   }
 
+  const grupos = NAV.map((g) => ({
+    ...g,
+    itens: g.itens.filter((i) => i.sempre || (i.admin ? isAdmin : i.modulo ? podeEm(isAdmin, permissoes, i.modulo, 'ver') : false)),
+  })).filter((g) => g.itens.length > 0)
+
   return (
-    <aside className="bg-navy-950 text-white p-4 flex flex-col sticky top-0 h-screen overflow-y-auto w-[250px] shrink-0">
-      <div className="flex items-center gap-2.5 pb-5 border-b border-navy-800 mb-4 px-1.5">
-        <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center font-display font-extrabold text-xs text-white shadow-card shrink-0">
-          SGP
-        </div>
-        <div className="font-display font-bold text-[13px] leading-tight">
-          Gerenciamento
-          <br />
-          Parlamentar
-        </div>
+    <aside className="bg-navy-950 text-white p-4 flex flex-col sticky top-0 h-screen overflow-y-auto w-[260px] shrink-0">
+      <div className="flex items-center gap-2.5 pb-5 border-b border-navy-800 mb-3 px-1.5">
+        {gabinete.logo ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={gabinete.logo} alt="" className="w-9 h-9 rounded-lg object-contain bg-white/95 p-0.5 shrink-0" />
+        ) : (
+          <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center font-display font-extrabold text-xs text-white shadow-card shrink-0">SGP</div>
+        )}
+        <div className="font-display font-bold text-[13px] leading-tight">{gabinete.nome ?? <>Gerenciamento<br />Parlamentar</>}</div>
       </div>
 
-      {NAV.map((group) => (
-        <div key={group.group}>
-          <div className="font-mono text-[10px] tracking-wide text-slate-500 uppercase px-2.5 pt-3.5 pb-1.5">
-            {group.group}
-          </div>
-          {group.items.map((item) => {
-            if (temSubmenu(item)) {
-              const filhoAtivo = item.children.some((c) => pathname === c.href)
-              // abre sozinho se a página atual for de um filho; senão respeita o clique do usuário
-              const aberto = abertos[item.label] ?? filhoAtivo
+      <nav className="flex-1">
+        {grupos.map((g) => (
+          <div key={g.grupo}>
+            <div className="font-mono text-[9.5px] tracking-wide text-slate-500 uppercase px-2.5 pt-3.5 pb-1.5">{g.grupo}</div>
+            {g.itens.map((item) => {
+              const ativo = pathname === item.href
               return (
-                <div key={item.label}>
-                  <button
-                    onClick={() => setAbertos((prev) => ({ ...prev, [item.label]: !aberto }))}
-                    className={`w-full flex items-center gap-2.5 px-2.5 py-2.5 text-[13.5px] font-medium border-l-2 text-left ${
-                      filhoAtivo ? 'text-white border-amber' : 'text-slate-300 border-transparent hover:bg-navy-900 hover:text-white'
-                    }`}
-                  >
-                    <span className="w-4 text-center text-sm shrink-0">{item.icon}</span>
-                    <span className="flex-1">{item.label}</span>
-                    <span className={`text-[10px] transition-transform ${aberto ? 'rotate-90' : ''}`}>▶</span>
-                  </button>
-                  {aberto && (
-                    <div className="ml-6 border-l border-navy-800">
-                      {item.children.map((child) => {
-                        const active = pathname === child.href
-                        return (
-                          <Link
-                            key={child.href}
-                            href={child.href}
-                            className={`block pl-3 pr-2.5 py-2 text-[13px] ${
-                              active ? 'text-white bg-navy-800 rounded-r-md' : 'text-slate-300 hover:text-white hover:bg-navy-900 rounded-r-md'
-                            }`}
-                          >
-                            {child.label}
-                          </Link>
-                        )
-                      })}
-                    </div>
-                  )}
-                </div>
+                <Link key={item.href} href={item.href}
+                  className={`flex items-center gap-2.5 px-2.5 py-2 text-[13px] font-medium border-l-2 rounded-r-md ${ativo ? 'bg-navy-800 text-white border-amber' : 'text-slate-300 border-transparent hover:bg-navy-900 hover:text-white'}`}>
+                  <span className="w-4 text-center text-sm shrink-0">{item.icon}</span>
+                  <span className="leading-tight">{item.label}</span>
+                </Link>
               )
-            }
+            })}
+          </div>
+        ))}
+      </nav>
 
-            const active = pathname === item.href
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={`flex items-center gap-2.5 px-2.5 py-2.5 text-[13.5px] font-medium border-l-2 ${
-                  active
-                    ? 'bg-navy-800 text-white border-amber'
-                    : 'text-slate-300 border-transparent hover:bg-navy-900 hover:text-white'
-                }`}
-              >
-                <span className="w-4 text-center text-sm shrink-0">{item.icon}</span> {item.label}
-              </Link>
-            )
-          })}
-        </div>
-      ))}
-
-      <div className="mt-auto pt-3.5 border-t border-navy-800 flex items-center gap-2.5 px-1">
-        <div className="w-[30px] h-[30px] rounded-full bg-blue-600 flex items-center justify-center text-[11px] font-bold shrink-0">
-          {nomeUsuario.slice(0, 2).toUpperCase()}
-        </div>
-        <div className="flex-1 min-w-0">
-          <div className="text-xs font-semibold truncate">{nomeUsuario}</div>
-          <button onClick={sair} className="text-[10.5px] text-slate-500 hover:text-white">
-            Sair
-          </button>
-        </div>
+      <div className="relative mt-4 pt-3 border-t border-navy-800">
+        {menuAberto && (
+          <div className="absolute bottom-full left-0 right-0 mb-2 bg-navy-900 border border-navy-800 rounded-xl shadow-modal p-1.5 text-[13px]">
+            <Link href="/dashboard/conta/perfil" onClick={() => setMenuAberto(false)} className="block px-3 py-2 rounded-lg text-slate-300 hover:bg-navy-800 hover:text-white">Meus dados / Perfil</Link>
+            <Link href="/dashboard/conta/seguranca" onClick={() => setMenuAberto(false)} className="block px-3 py-2 rounded-lg text-slate-300 hover:bg-navy-800 hover:text-white">Segurança</Link>
+            <Link href="/dashboard/conta/preferencias" onClick={() => setMenuAberto(false)} className="block px-3 py-2 rounded-lg text-slate-300 hover:bg-navy-800 hover:text-white">Preferências</Link>
+            <button onClick={sair} className="w-full text-left px-3 py-2 rounded-lg text-red-300 hover:bg-navy-800">Sair (Logout)</button>
+          </div>
+        )}
+        <button onClick={() => setMenuAberto((v) => !v)} className="w-full flex items-center gap-2.5 px-1 py-1 rounded-lg hover:bg-navy-900 text-left">
+          {avatarUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={avatarUrl} alt="" className="w-[32px] h-[32px] rounded-full object-cover shrink-0" />
+          ) : (
+            <div className="w-[32px] h-[32px] rounded-full bg-blue-600 flex items-center justify-center text-[11px] font-bold shrink-0">{nomeUsuario.slice(0, 2).toUpperCase()}</div>
+          )}
+          <div className="flex-1 min-w-0">
+            <div className="text-xs font-semibold truncate">{nomeUsuario}</div>
+            <div className="text-[10.5px] text-slate-500">{isAdmin ? 'Administrador' : 'Minha conta'}</div>
+          </div>
+          <span className="text-slate-500 text-[10px]">{menuAberto ? '▼' : '▲'}</span>
+        </button>
       </div>
     </aside>
   )
